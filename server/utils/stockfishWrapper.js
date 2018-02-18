@@ -94,7 +94,8 @@ function SET_OPTIONS( wOptions ) {
 			if ( stockfish === null ) { resolve(); return; }
 			wOptions = wOptions || {
 				Threads: 4 ,
-				Hash:  1024
+				Hash:  1024 ,
+				MultiPV: 6
 			};
 			for ( var xOption in wOptions ) {
 				const x11 = `setoption name ${ xOption } value ${ wOptions[ xOption ] }`;
@@ -158,12 +159,26 @@ function EVAL( wDepth ) {
 					cached_depth_line = xstd_out;
 				}
 				if ( xsplit[ 0 ] === "bestmove" ) {
-					console.log( cached_depth_line );
-					console.log( xstd_out );
-					resolve();
+					var wLines = [];
+
+					var pv_lines = cached_depth_line.split( "\n" );
+					console.log( "PV_Lines Length === " + pv_lines.length.toString() );
+					const upper_bound = ( pv_lines.length );
+					for ( var i = 0; i < upper_bound; ++i ) {
+						const isplit = pv_lines[ i ].split( " " );
+						const pv_string = pv_lines[ i ].split( "pv " )[ 2 ];
+						const pv_array = pv_string.split( " " );
+						wLines.push({
+							score_text: isplit[ 8 ] ,
+							score: isplit[ 9 ] ,
+							pv_string: pv_string ,
+							pv: pv_array
+						});
+					}
+					resolve( wLines );
+					return;
 				}
-			});			
-			resolve();
+			});
 		}
 		catch( error ) { console.log( error ); reject( error ); }
 	});
