@@ -21,10 +21,10 @@ const StockFish = require( "./server/utils/stockfishWrapper.js" );
 	console.log( "Is Ready ??? " + isReady );
 	await StockFish.reset();
 	await StockFish.loadFEN( "7K/8/k1P5/7p/8/8/8/8 w - -" );
-	var lines = await StockFish.eval( 20 );
+	var lines = await StockFish.evalDepth( 20 );
 	console.log( lines );
 
-	process.on( "SIGINT" , async function () {
+	process.on( "SIGINT" , async () => {
 		await StockFish.close();
 	});
 

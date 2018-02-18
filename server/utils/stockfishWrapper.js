@@ -1,3 +1,8 @@
+// https://python-chess.readthedocs.io/en/latest/uci.html
+// http://support.stockfishchess.org/kb/advanced-topics/uci-protocol
+
+// https://rawgit.com/raneku/chessboardjs/master/www/releases/0.3.0-r1/test.html
+
 const { spawn } = require( "child_process" );
 const sleep = require( "./generic.js" ).wSleep;
 const pkill = require( "./generic.js" ).pKill;
@@ -145,12 +150,11 @@ function LOAD_FEN( wFenString ) {
 }
 module.exports.loadFEN = LOAD_FEN;
 
-function EVAL( wDepth ) {
+function EVAL( wEvalCommand ) {
 	return new Promise( async function( resolve , reject ) {
 		try {
 			if ( stockfish === null ) { resolve(); return; }
-			wDepth = wDepth || 20;
-			stockfish.stdin.write( `go depth ${ wDepth }\n` );
+			stockfish.stdin.write( wEvalCommand );
 			var cached_depth_line = null;
 			stockfish.stdout.on( "data" , ( data ) => {
 				var xstd_out = data.toString().trim();
@@ -160,7 +164,6 @@ function EVAL( wDepth ) {
 				}
 				if ( xsplit[ 0 ] === "bestmove" ) {
 					var wLines = [];
-
 					var pv_lines = cached_depth_line.split( "\n" );
 					console.log( "PV_Lines Length === " + pv_lines.length.toString() );
 					const upper_bound = ( pv_lines.length );
@@ -172,7 +175,7 @@ function EVAL( wDepth ) {
 							score_text: isplit[ 8 ] ,
 							score: isplit[ 9 ] ,
 							pv_string: pv_string ,
-							pv: pv_array
+							//pv: pv_array
 						});
 					}
 					resolve( wLines );
@@ -183,4 +186,49 @@ function EVAL( wDepth ) {
 		catch( error ) { console.log( error ); reject( error ); }
 	});
 }
-module.exports.eval = EVAL;
+function EVAL_DEPTH( wDepth ) {
+	return new Promise( async function( resolve , reject ) {
+		try {
+			wDepth = wDepth || 20;
+			const eval_cmd = `go depth ${ wDepth }\n`;
+			const lines = await EVAL( eval_cmd );
+			resolve( lines );
+		}
+		catch( error ) { console.log( error ); reject( error ); }
+	});
+}
+module.exports.evalDepth = EVAL_DEPTH;
+
+function EVAL_TIME( wMoveTime ) {
+	return new Promise( async function( resolve , reject ) {
+		try {
+			wMoveTime = wMoveTime || 5000;
+			const eval_cmd = `go movetime ${ wMoveTime }\n`;
+			const lines = await EVAL( eval_cmd );
+			resolve( lines );
+		}
+		catch( error ) { console.log( error ); reject( error ); }
+	});
+}
+module.exports.evalTime = EVAL_TIME;
+
+function INSERT_MOVE( wMove ) {
+	return new Promise( function( resolve , reject ) {
+		try {
+			SEND_COMMAND
+			resolve();
+		}
+		catch( error ) { console.log( error ); reject( error ); }
+	});
+}
+module.exports.insertMove = INSERT_MOVE
+
+function JUDGE_DECISION() {
+	return new Promise( async function( resolve , reject ) {
+		try {
+			resolve();
+		}
+		catch( error ) { console.log( error ); reject( error ); }
+	});
+}
+module.exports.judgeDecision = JUDGE_DECISION;
